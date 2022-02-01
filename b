@@ -321,18 +321,6 @@ targetblock.Anchored = true
 local nnblock = Instance.new("Part", script)
 nnblock.Anchored = true
 nnblock.Position = Vector3.new(5, 5, 0)
-local inputs = {
-	targetblock.Size.X/maxb;
-	targetblock.Size.Y/maxb;
-	targetblock.Size.Z/maxb;
-	targetblock.Transparency;
-	targetblock.Color.R/255;
-	targetblock.Color.G/255;
-	targetblock.Color.B/255;
-	nnblock.Color.R/255;
-	nnblock.Color.B/255;
-	nnblock.Color.G/255;
-}
 
 local targets = {
 	targetblock.Size.X/maxb;
@@ -344,6 +332,18 @@ local targets = {
 	targetblock.Color.B/255;
 }
 for i = 1,ts do
+        local inputs = {
+	    targetblock.Size.X/maxb;
+	    targetblock.Size.Y/maxb;
+	    targetblock.Size.Z/maxb;
+	    targetblock.Transparency;
+	    targetblock.Color.R/255;
+	    targetblock.Color.G/255;
+	    targetblock.Color.B/255;
+	    nnblock.Color.R/255;
+	    nnblock.Color.B/255;
+	    nnblock.Color.G/255;
+        }
 	blockmatcher:BackProp(inputs, targets)
 	local things = blockmatcher:Forward(inputs)
 	local size = Vector3.new(things[1]*maxb, things[2]*maxb, things[3]*maxb)
