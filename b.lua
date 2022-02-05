@@ -2,6 +2,8 @@ script.Name = "bm"
 local module = {}
  
 function random(min, max)
+    min = min or 0
+    max = max or 1
     return min + math.random() * (max-min)
 end
  
@@ -309,7 +311,7 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 end
 
 local NNL = module
-local blockmatcher = NNL:CreateNN(10, 4, 2, 7, .4, "Sigmoid")
+local blockmatcher = NNL:CreateNN(10, 5, 1, 7, .4, "Sigmoid")
 local maxb = 5
 local ts = 100000
 local targetblock = Instance.new("Part", script)
