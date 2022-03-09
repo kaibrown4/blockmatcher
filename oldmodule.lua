@@ -248,7 +248,7 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 		end
 		for Layer = self.__NumberHLayers+1,2,-1 do
 			HES[#HES+1] = E
-			for dl = 1,#L do
+			for dl = 1,#E do
 				for node = 1,#stuff[Layer-1] do
 					local stuffinlayer = stuff[Layer]
 					module:MAp(stuffinlayer, ActivationFuncs[self.__AF], true)
