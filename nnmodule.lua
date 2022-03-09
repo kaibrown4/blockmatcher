@@ -73,7 +73,7 @@ function Matrix:toArray(M)
 	return array
 end
 
-function module:divMatrices(M1, M2)
+function Matrix:divMatrices(M1, M2)
 	local NewMatrix = module.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
