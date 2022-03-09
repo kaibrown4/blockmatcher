@@ -6,7 +6,7 @@ function random(min, max)
 	return min + math.random() * (max - min)
 end
 
-function module.new(rows, cols)
+function Matrix.new(rows, cols)
 	-- Creates a new Matrix with x rows and y coloums
 	local Table = {}
 	Table.rows = rows
@@ -21,7 +21,7 @@ function module.new(rows, cols)
 	return Table
 end
 
-function module:addMatrices(M1, M2)
+function Matrix:addMatrices(M1, M2)
 	local NewMatrix = module.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
@@ -31,7 +31,7 @@ function module:addMatrices(M1, M2)
 	return NewMatrix
 end
 
-function module:randomizeMatrix(M, min, max)
+function Matrix:randomizeMatrix(M, min, max)
 	for x = 1,M.rows do
 		for y = 1,M.cols do
 			M.Matrix[x][y] = random(min, max)
@@ -39,7 +39,7 @@ function module:randomizeMatrix(M, min, max)
 	end
 end
 
-function module:subMatrices(M1, M2)
+function Matrix:subMatrices(M1, M2)
 	local NewMatrix = module.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
@@ -49,7 +49,7 @@ function module:subMatrices(M1, M2)
 	return NewMatrix
 end
 
-function module:toMatrix(array)
+function Matrix:toMatrix(array)
 	local e = array["Matrix"]
 	if type(e) == "table" then
 		return array
@@ -63,7 +63,7 @@ function module:toMatrix(array)
 	end
 end
 
-function module:toArray(M)
+function Matrix:toArray(M)
 	local array = {}
 	for x = 1,M.rows do
 		for y = 1,M.cols do
@@ -83,7 +83,7 @@ function module:divMatrices(M1, M2)
 	return NewMatrix
 end
 
-function module:transposeMatrix(M)
+function Matrix:transposeMatrix(M)
 	local newMatrix = module.new(M.cols, M.rows)
 	for x = 1,M.rows do
 		for y = 1,M.cols do
@@ -93,7 +93,7 @@ function module:transposeMatrix(M)
 	return newMatrix
 end
 
-function module:multMatrices(M1, M2, scalar)
+function Matrix:multMatrices(M1, M2, scalar)
 	if type(M2) == "number" and type(M1) == "table" then
 		local newMatrix = module.new(M1.rows, M1.cols)
 		for x = 1,newMatrix.rows do
@@ -135,7 +135,7 @@ function module:multMatrices(M1, M2, scalar)
 	end
 end
 
-function module:mapMatrix(M, functio, s)
+function Matrix:mapMatrix(M, functio, s)
 	local newMatrix = module.new(M.rows, M.cols)
 	for x = 1,newMatrix.rows do
 		for y = 1,newMatrix.cols do
@@ -149,10 +149,6 @@ end
 
 
 local module = {}
-
-function random(min, max)
-	return min + math.random() * (max-min)
-end
 
 
 local ActivationFuncs = {}
