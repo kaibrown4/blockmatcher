@@ -99,7 +99,7 @@ function module:ActivationFunc(x, d, a)
 	end
 end
 
-function module:LayerM(net, input, layer, f, d)
+function module:LayerM(net, input, layer, f, d, s)
 	local out = {}
 	if f then
 		for l = 1,net.__Layers[layer+1] do
@@ -116,6 +116,20 @@ function module:LayerM(net, input, layer, f, d)
 			table.insert(out, module:ActivationFunc(sum, d, net.__AF))
 		end
 	else
+		if s then
+		    for l = 1,net.__Layers[layer-1] do
+			local sum = 0
+
+			for inpu = 1,#input do
+				local inp = input[inpu]
+				local weig = net.__Weights[layer-1][inpu*l]
+				sum += inp * weig
+			end
+			
+			table.insert(out, sum)
+		    end 
+		    return out
+		end
 		for l = 1,net.__Layers[layer-1] do
 			local sum = 0
 
@@ -224,9 +238,8 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 			OME[OutputNode] = out_errors[OutputNode] * DerivativeOut[OutputNode]
 			OUTLR[OutputNode] = OME[OutputNode] * self.__LR
 		end
-		local HE = module:LayerM(self, out_errors, self.__NumberHLayers+2, false, true)
+		local HE = module:LayerM(self, out_errors, self.__NumberHLayers+2, false, false)
 		local E = module:LayerM(self, out_errors, self.__NumberHLayers+2)
-		local L = HE
 		HES[1] = HE
 		for Node = 1,#stuff[#stuff-1] do
 			for out = 1,#OUTLR do
@@ -242,7 +255,6 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 					e[#e+1] = E[dl] * stuffinlayer[dl] * stuff[Layer-1][node] * self.__LR
 				end
 			end
-			L = module:LayerM(self, L, Layer, false, true)
 			
 			E = module:LayerM(self, E, Layer, false)
 		end
