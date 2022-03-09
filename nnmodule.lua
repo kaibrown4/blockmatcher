@@ -4,6 +4,7 @@ function random(min, max)
 	return min + math.random() * (max-min)
 end
 
+local Matrix = require(game:GetService("ServerScriptService").Matrix)
 local ActivationFuncs = {}
 
 ActivationFuncs.Sigmoid = function(x, d)
@@ -127,37 +128,22 @@ function module:CopyTable(s)
 	return f
 end
 
-function module:LayerM(net, input, layer, f, d)
-	local out = {}
+function module:LayerM(net, input, layer, f, d, s)
+	local minput = Matrix:toMatrix(input)
 	if f then
-		for l = 1,net.__Layers[layer+1] do
-			local sum = 0
-
-			for inpu = 1,#input do
-				local inp = input[inpu]
-				local weig = net.__Weights[layer][inpu*l]
-				sum += inp * weig
-			end
-			
-			sum += net.__Bias[layer][l]
-			
-			table.insert(out, module:ActivationFunc(sum, d, net.__AF))
-		end
+		local n = Matrix:multMatrices(net.__Weights[layer], minput)
+		local nplusb = Matrix:addMatrices(n, net.__Bias[layer])
+		local nplusb_a = Matrix:mapMatrix(nplusb, ActivationFuncs[net.__AF], d)
+		return nplusb_a
 	else
-		for l = 1,net.__Layers[layer-1] do
-			local sum = 0
-
-			for inpu = 1,#input do
-				local inp = input[inpu]
-				local weig = net.__Weights[layer-1][inpu*l]
-				sum += inp * weig
-			end
-			
-			sum += (net.__Bias[layer-1][l] or 0)
-			table.insert(out, module:ActivationFunc(sum, d, net.__AF))
-		end 
+		if s then
+			return Matrix:multMatrices(Matrix:transposeMatrix(net.__Weights[layer-1]), minput)
+		end
+		local n = Matrix:multMatrices(Matrix:transposeMatrix(net.__Weights[layer-1]), minput)
+		local nplusb = Matrix:addMatrices(n, net.__Bias[layer-1])
+		local nplusb_a = Matrix:mapMatrix(nplusb, ActivationFuncs[net.__AF], d)
+		return nplusb_a
 	end
-	return out
 end
 
 function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutputs, LearningRate, ActivationFunction)
@@ -174,40 +160,32 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 	NewNN.__Bias = {}
 	NewNN.__Score = 0
 	NewNN.__Hidden = {}
-	NewNN.__Weights[1] = {}
 	
 	NewNN.__Layers[1] = NumberInputs
 	
 	for layer = 1,NumberHLayers,1 do
-		NewNN.__Bias[layer] = {}
+		NewNN.__Bias[layer] = Matrix.new(NumberHidden, 1)
 		NewNN.__Layers[#NewNN.__Layers+1] = NumberHidden
-		for node = 1,NumberHidden,1 do
-			NewNN.__Bias[layer][node] = 0
-		end
 	end
-	NewNN.__Bias[NumberHLayers+1] = {}
-	for out = 1,NumberOutputs,1 do
-		NewNN.__Bias[NumberHLayers+1][out] = random(-1,1)
-	end
+
+	NewNN.__Bias[NumberHLayers+1] = Matrix.new(NumberOutputs, 1)
 	
 	NewNN.__Layers[#NewNN.__Layers+1] = NumberOutputs
 	
-	for i = 1,NumberInputs*NumberHidden do
-		NewNN.__Weights[1][i] = random(-1, 1)
-	end
+	local iw = Matrix.new(NumberHidden, NumberInputs)
+	Matrix:randomizeMatrix(iw, -1, 1)
+	NewNN.__Weights[1] = iw
 	
 	for i=1,NumberHLayers-1 do
-		NewNN.__Weights[i+1] = {}
-		for ii = 1,NumberHidden^2 do
-			NewNN.__Weights[i+1][ii] = random(-1, 1)
-		end
+		local hw = Matrix.new(NumberHidden, NumberHidden)
+		Matrix:randomizeMatrix(hw, -1, 1)
+		NewNN.__Weights[#NewNN.__Weights+1] = hw
 	end
 	
-	NewNN.__Weights[#NewNN.__Weights+1] = {}
+	local ow = Matrix.new(NumberOutputs, NumberHidden)
+	Matrix:randomizeMatrix(ow, -1, 1)
 	
-	for i=1,NumberHidden*NumberOutputs do
-		NewNN.__Weights[#NewNN.__Weights][i] = random(-1, 1)
-	end
+	NewNN.__Weights[#NewNN.__Weights+1] = ow
 	
 	function NewNN:Forward(Inputs, giveotherstuff, d)
 		local hidden = {}
@@ -217,14 +195,14 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 		otherstuff[1] = Inputs
 		local oh = module:LayerM(self, Inputs, 1, true)
 		if giveotherstuff then
-			otherstuff[#otherstuff+1] = oh
+			otherstuff[#otherstuff+1] = Matrix:toArray(oh)
 		end
 		local inpu = oh
 		
 		for l = 1,self.__NumberHLayers,1 do
 			inpu = module:LayerM(self, inpu, l+1, true)
 			if giveotherstuff then
-				otherstuff[#otherstuff+1] = inpu
+				otherstuff[#otherstuff+1] = Matrix:toArray(inpu)
 			end
 		end
 		
@@ -232,79 +210,28 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 	
 		
 		if giveotherstuff then
-			return output, otherstuff
+			return Matrix:toArray(output), otherstuff
 		end
-		return output
+		return Matrix:toArray(output)
 	end
 	
 	function NewNN:BackProp(Inputs, Targets)
+		local mTargets = Matrix:toMatrix(Targets)
 		local Output, stuff = self:Forward(Inputs, true)
-		local out_errors = {}
-		local DerivativeOut = {}
-		local OME = {}
-		local HES = {}
-		local OUTLR = {}
-		local DeltaWeights = {}
-		local e = {}
-		local tt = 0
-		for OutputNode = 1,self.__NumberOut do
-			DerivativeOut[OutputNode] = module:ActivationFunc(Output[OutputNode], true, self.__AF)
-			out_errors[OutputNode] = Targets[OutputNode] - Output[OutputNode]
-			OME[OutputNode] = out_errors[OutputNode] * DerivativeOut[OutputNode]
-			OUTLR[OutputNode] = OME[OutputNode] * self.__LR
+		local mOutput = Matrix:toMatrix(Output)
+		local l_error = Matrix:subMatrices(mTargets, mOutput)
+		for layer = self.__NumberHLayers+2, 2, -1 do
+			local vinlayer = Matrix:toMatrix(stuff[layer])
+			local lvinlayer = Matrix:toMatrix(stuff[layer-1])
+			local t_lvinlayer = Matrix:transposeMatrix(lvinlayer)
+			local g = Matrix:mapMatrix(vinlayer, ActivationFuncs[self.__AF], true)
+			g = Matrix:multMatrices(g, l_error, true)
+			g = Matrix:multMatrices(g, self.__LR)
+			self.__Weights[layer-1] = Matrix:addMatrices(self.__Weights[layer-1], Matrix:multMatrices(g, t_lvinlayer))
+			self.__Bias[layer-1] = Matrix:addMatrices(self.__Bias[layer-1], g)
+			l_error = module:LayerM(self, l_error, layer, false, false, true)
 		end
-		local HE = module:LayerM(self, out_errors, self.__NumberHLayers+2, false, true)
-		local E = module:LayerM(self, out_errors, self.__NumberHLayers+2)
-		local L = HE
-		HES[1] = HE
-		for Node = 1,#stuff[#stuff-1] do
-			for out = 1,#OUTLR do
-				e[#e+1] = stuff[#stuff-1][Node] * OUTLR[out]
-			end
-		end
-		for Layer = self.__NumberHLayers+1,2,-1 do
-			HES[#HES+1] = E
-			for dl = 1,#L do
-				for node = 1,#stuff[Layer-1] do
-					local stuffinlayer = stuff[Layer]
-					module:MAp(stuffinlayer, ActivationFuncs[self.__AF], true)
-					e[#e+1] = E[dl] * stuffinlayer[dl] * stuff[Layer-1][node] * self.__LR
-				end
-			end
-			L = module:LayerM(self, L, Layer, false, true)
-			
-			E = module:LayerM(self, E, Layer, false)
-		end
-		DeltaWeights = e
-		for o = 1,self.__Layers[#self.__Layers] do
-			local db = self.__Bias[#self.__Bias][o] + OUTLR[o]
-			if db > 1e10 or db < -1e10 then
-				self.__Bias[#self.__Bias][o] = 0
-			else
-				self.__Bias[#self.__Bias][o] += OUTLR[o]
-			end
-		end
-		for la = 1,self.__NumberHLayers do
-			for no = 1,self.__NumberHidden do
-				local db = self.__Bias[la][no] + HES[la][no] * self.__LR
-				if db > 1e10 or db < -1e10 then
-					self.__Bias[la][no] = 0
-				else
-					self.__Bias[la][no] += HES[la][no] * self.__LR
-				end
-			end
-		end
-		for i, v in pairs(self.__Weights) do
-			for ii, vv in pairs(v) do
-				local Weight = self.__Weights[i][ii]
-				tt+=1
-				if Weight+DeltaWeights[tt] > 1e10 or Weight+DeltaWeights[tt] < -1e30 then
-					self.__Weights[i][ii] = random(-1, 1)
-				else
-					self.__Weights[i][ii] += DeltaWeights[tt]
-				end
-			end
-		end
+		
 	end
 	
 	function NewNN:RandomizeWeights()
@@ -414,3 +341,4 @@ function module:RunGA(GA, scores)
 end
 
 return module
+
