@@ -280,3 +280,5 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 	
 	return NewNN
 end
+
+return module
