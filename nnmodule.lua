@@ -22,7 +22,7 @@ function Matrix.new(rows, cols)
 end
 
 function Matrix:addMatrices(M1, M2)
-	local NewMatrix = module.new(M1.rows, M1.cols)
+	local NewMatrix = Matrix.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
 			NewMatrix.Matrix[x][y] = M1.Matrix[x][y] + M2.Matrix[x][y]
@@ -40,7 +40,7 @@ function Matrix:randomizeMatrix(M, min, max)
 end
 
 function Matrix:subMatrices(M1, M2)
-	local NewMatrix = module.new(M1.rows, M1.cols)
+	local NewMatrix = Matrix.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
 			NewMatrix.Matrix[x][y] = M1.Matrix[x][y] - M2.Matrix[x][y]
@@ -54,7 +54,7 @@ function Matrix:toMatrix(array)
 	if type(e) == "table" then
 		return array
 	elseif e == nil then
-		local arrayToMatrix = module.new(#array, 1)
+		local arrayToMatrix = Matrix.new(#array, 1)
 		for x = 1,#array do
 			arrayToMatrix.Matrix[x][1] = array[x]
 		end
@@ -74,7 +74,7 @@ function Matrix:toArray(M)
 end
 
 function Matrix:divMatrices(M1, M2)
-	local NewMatrix = module.new(M1.rows, M1.cols)
+	local NewMatrix = Matrix.new(M1.rows, M1.cols)
 	for x = 1,NewMatrix.rows do
 		for y = 1,NewMatrix.cols do
 			NewMatrix.Matrix[x][y] = M1.Matrix[x][y] / M2.Matrix[x][y]
@@ -84,7 +84,7 @@ function Matrix:divMatrices(M1, M2)
 end
 
 function Matrix:transposeMatrix(M)
-	local newMatrix = module.new(M.cols, M.rows)
+	local newMatrix = Matrix.new(M.cols, M.rows)
 	for x = 1,M.rows do
 		for y = 1,M.cols do
 			newMatrix.Matrix[y][x] = M.Matrix[x][y]
@@ -95,7 +95,7 @@ end
 
 function Matrix:multMatrices(M1, M2, scalar)
 	if type(M2) == "number" and type(M1) == "table" then
-		local newMatrix = module.new(M1.rows, M1.cols)
+		local newMatrix = Matrix.new(M1.rows, M1.cols)
 		for x = 1,newMatrix.rows do
 			for y = 1,newMatrix.cols do
 				newMatrix.Matrix[x][y] = M1.Matrix[x][y] * M2
@@ -103,7 +103,7 @@ function Matrix:multMatrices(M1, M2, scalar)
 		end
 		return newMatrix
 	elseif type(M1) == "number" and type(M2) == "table" then
-		local newMatrix = module.new(M2.rows, M2.cols)
+		local newMatrix = Matrix.new(M2.rows, M2.cols)
 		for x = 1,newMatrix.rows do
 			for y = 1,newMatrix.cols do
 				newMatrix.Matrix[x][y] = M2.Matrix[x][y] * M1
@@ -113,7 +113,7 @@ function Matrix:multMatrices(M1, M2, scalar)
 	end
 	
 	if type(M1) == "table" and type(M2) == "table" and scalar == true then
-		local newMatrix = module.new(M1.rows, M1.cols)
+		local newMatrix = Matrix.new(M1.rows, M1.cols)
 		for x = 1,newMatrix.rows do
 			for y = 1,newMatrix.cols do
 				newMatrix.Matrix[x][y] = M1.Matrix[x][y] * M2.Matrix[x][y]
@@ -121,7 +121,7 @@ function Matrix:multMatrices(M1, M2, scalar)
 		end
 		return newMatrix
 	elseif type(M1) == "table" and type(M2) == "table" and not scalar then
-		local newMatrix = module.new(M1.rows, M2.cols)
+		local newMatrix = Matrix.new(M1.rows, M2.cols)
 		for x = 1,newMatrix.rows do
 			for y = 1,newMatrix.cols do
 				local sum = 0
@@ -136,7 +136,7 @@ function Matrix:multMatrices(M1, M2, scalar)
 end
 
 function Matrix:mapMatrix(M, functio, s)
-	local newMatrix = module.new(M.rows, M.cols)
+	local newMatrix = Matrix.new(M.rows, M.cols)
 	for x = 1,newMatrix.rows do
 		for y = 1,newMatrix.cols do
 			newMatrix.Matrix[x][y] = functio(M.Matrix[x][y], s)
