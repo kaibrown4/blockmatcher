@@ -4,7 +4,7 @@ function random(min, max)
 	return min + math.random() * (max-min)
 end
 
-local Matrix = require(game:GetService("ServerScriptService").Matrix)
+local Matrix = loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/kaibrown4/blockmatcher/main/Matrix.lua"))
 local ActivationFuncs = {}
 
 ActivationFuncs.Sigmoid = function(x, d)
