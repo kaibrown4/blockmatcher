@@ -239,7 +239,7 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 			OUTLR[OutputNode] = OME[OutputNode] * self.__LR
 		end
 		local HE = module:LayerM(self, out_errors, self.__NumberHLayers+2, false, false)
-		local E = module:LayerM(self, out_errors, self.__NumberHLayers+2)
+		local E = module:LayerM(self, out_errors, self.__NumberHLayers+2, false, false, true)
 		HES[1] = HE
 		for Node = 1,#stuff[#stuff-1] do
 			for out = 1,#OUTLR do
@@ -256,7 +256,7 @@ function module:CreateNN(NumberInputs, NumberHidden, NumberHLayers, NumberOutput
 				end
 			end
 			
-			E = module:LayerM(self, E, Layer, false)
+			E = module:LayerM(self, E, Layer, false, false, true)
 		end
 		DeltaWeights = e
 		for o = 1,self.__Layers[#self.__Layers] do
